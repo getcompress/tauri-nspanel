@@ -42,6 +42,23 @@ impl INSObject for RawNSPanel {
 }
 
 impl RawNSPanel {
+    extern "C" fn accepts_first_mouse(_: &Object, _: Sel, _: id) -> BOOL {
+        YES
+    }
+
+    extern "C" fn mouse_entered(_this: &Object, _sel: Sel, _event: id) {
+        unsafe {
+            let this: id = _this as *const _ as id;
+
+            // Force the panel to become key and active
+            let _: () = msg_send![this, makeKeyWindow];
+
+            // Add explicit type annotation for the content view
+            let content_view: id = msg_send![this, contentView];
+            let _: () = msg_send![this, makeFirstResponder: content_view];
+        }
+    }
+
     /// Returns YES to ensure that RawNSPanel can become a key window
     extern "C" fn can_become_key_window(_: &Object, _: Sel) -> BOOL {
         YES
@@ -64,6 +81,16 @@ impl RawNSPanel {
             cls.add_method(
                 sel!(canBecomeKeyWindow),
                 Self::can_become_key_window as extern "C" fn(&Object, Sel) -> BOOL,
+            );
+
+            cls.add_method(
+                sel!(acceptsFirstMouse:),
+                Self::accepts_first_mouse as extern "C" fn(&Object, Sel, id) -> BOOL,
+            );
+
+            cls.add_method(
+                sel!(mouseEntered:),
+                Self::mouse_entered as extern "C" fn(&Object, Sel, id),
             );
 
             cls.add_method(

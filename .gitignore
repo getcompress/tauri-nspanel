@@ -6,3 +6,7 @@
 
 .direnv
 .bacon-locations
+
+.idea
+*.iml
+.DS_Store
